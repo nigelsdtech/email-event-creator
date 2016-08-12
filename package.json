@@ -1,0 +1,30 @@
+{
+  "name": "email-event-creator",
+  "version": "1.0.0",
+  "description": "Email a CSV with events to be created in a google calendar",
+  "main": "index.js",
+  "scripts": {
+    "test": "sh scripts/test.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nigelsdtech/email-event-creator.git"
+  },
+  "author": "Nigel Stephen D'Souza",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nigelsdtech/email-event-creator/issues"
+  },
+  "homepage": "https://github.com/nigelsdtech/email-event-creator#readme",
+  "dependencies": {
+    "calendar-model": "git://github.com/nigelsdtech/calendar-model.git#b5b232d0a736cff5f8a133a25a84a8fd4a201a55",
+    "config": "1.21.0",
+    "csvtojson": "1.0.0",
+    "email-notification": "git://github.com/nigelsdtech/email-notification.git#85709e54724fe7de7b41da0e93b04c01b065cf64",
+    "log4js": "0.6.38",
+    "reporter": "git://github.com/nigelsdtech/reporter.git#7edea52c606aaedf09d0c0713e860cd7bde3e23d"
+  },
+  "config": {
+    "appName": "email-event-creator"
+  }
+}

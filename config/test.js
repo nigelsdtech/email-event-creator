@@ -5,6 +5,9 @@ module.exports = {
 
   appName: defer (function (cfg) { return cfg.appName+'-test' } ),
 
+  log: {
+    level: "WARN"
+  },
   test: {
     commonStubs: {
       'cfg': {

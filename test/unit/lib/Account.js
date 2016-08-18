@@ -66,18 +66,21 @@ describe('Account.js', function () {
 
   describe('process', function () {
 
-    var handleErrStub
+    var hEStub
 
-    before(function() {
-      handleErrStub = sinon.stub(Account.prototype,'handleError');
-    })
+    before(function () {
+      hEStub = sinon.stub(Account.prototype,'handleError');
+    });
 
     describe('checking processing is required', function () {
-      it('calls handleError if the EN api fails', function () {
+      it('calls handleError with an error if the EN api fails', function () {
         enHbpStub.yields('TestError enHbp failed');
-        account.process(null,stubFn)
-        handleErrStub.calledWithExactly('TestError enHbp failed',stubFn).should.be.true
-        enHbpStub.reset()
+
+        account.process(null,function(err) {
+          hEStub.calledWith('TestError enHbp failed').should.be.true
+          enHbpStub.reset()
+          hEStub.reset()
+        })
       });
    
    
@@ -96,8 +99,11 @@ describe('Account.js', function () {
 
       it('calls handleError if EN getMessage fails', function () {
         enGmStub.yields('TestError enGm failed');
-        account.process(null,stubFn)
-        handleErrStub.calledWithExactly('TestError enGm failed',stubFn).should.be.true
+        account.process(null,function(err) {
+          hEStub.calledWith('TestError enGm failed').should.be.true
+          enHbpStub.reset()
+          hEStub.reset()
+        })
       });
 
       describe('and the email has been retrieved', function () {
@@ -106,12 +112,9 @@ describe('Account.js', function () {
             emailBody
 
 	var data = [
-          { description: "Fly to Dubai", end: { dateTime: '2016-12-18 09:00', timeZone: 'GMT' },
-            start: { dateTime: '2016-12-18 20:20', timeZone: 'GST' }, summary: 'LHR-> DXB' },
-          { description: "Fly to Bombay", end: { dateTime: '2016-12-19 03:40', timeZone: 'GST' },
-            start: { dateTime: '2016-12-18 22:45', timeZone: 'IST' }, summary: 'DXB -> BOM' },
-          { description: "Fly back to Dubai", end: { dateTime: '2017-01-07 18:15', timeZone: 'IST' },
-            start: { dateTime: '2017-01-07 17:00', timeZone: 'GST' }, summary: 'BOM -> DXB' },
+          { description: "Fly to DXB",   end: {dateTime: '2016-12-18 09:00', timeZone: 'GMT'}, start: {dateTime: '2016-12-18 20:20', timeZone: 'GST'}, summary: 'LHR->DXB' },
+          { description: "Fly to BOM",   end: {dateTime: '2016-12-19 03:40', timeZone: 'GST'}, start: {dateTime: '2016-12-18 22:45', timeZone: 'IST'}, summary: 'DXB->BOM' },
+          { description: "Fly from DXB", end: {dateTime: '2017-01-07 18:15', timeZone: 'IST'}, start: {dateTime: '2017-01-07 17:00', timeZone: 'GST'}, summary: 'BOM->DXB' },
         ]
 
 
@@ -136,8 +139,11 @@ describe('Account.js', function () {
         it('calls handleError if the conversion fails', function () {
 	  var err = 'TestError converterStub failed'
           converterStub.yields(err);
-          account.process(null,stubFn)
-          handleErrStub.calledWithExactly('Error converting CSV to JSON - '+err,stubFn).should.be.true
+          account.process(null,function(err) {
+            hEStub.calledWith(err).should.be.true
+            enHbpStub.reset()
+            hEStub.reset()
+          })
         });
 
         describe('and the conversion is successful', function () {

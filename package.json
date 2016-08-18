@@ -22,6 +22,8 @@
     "csvtojson": "1.0.0",
     "email-notification": "git://github.com/nigelsdtech/email-notification.git#85709e54724fe7de7b41da0e93b04c01b065cf64",
     "log4js": "0.6.38",
+    "q": "1.4.1",
+    "q-foreach": "0.0.3",
     "reporter": "git://github.com/nigelsdtech/reporter.git#7edea52c606aaedf09d0c0713e860cd7bde3e23d"
   },
   "config": {

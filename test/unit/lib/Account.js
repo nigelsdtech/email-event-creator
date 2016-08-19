@@ -6,8 +6,9 @@ var
     chai              = require('chai'),
     converter         = require('csvtojson').Converter,
     EmailNotification = require('email-notification'),
+    reporter          = require('reporter'),
     sinon             = require('sinon'),
-    Account           = require('../../../lib/Account.js');
+    account           = require('../../../lib/Account.js');
 
 /*
  * Set up chai
@@ -28,142 +29,269 @@ var stubFn = function () {}
 
 describe('Account.js', function () {
 
-  this.timeout(timeout);
-
   var
-      account,
-      accountName,
-      calendarModelStub,
-      enGmStub,
-      enHbpStub
+      cbStub,
+      hEStub
 
 
   before(function () {
 
-    enHbpStub = sinon.stub(EmailNotification.prototype,'hasBeenProcessed');
-    enGmStub = sinon.stub(EmailNotification.prototype,'getMessage');
-    //calendarModelStub = sinon.stub(CalendarModel.prototype,'');
-
-    accountName = "personalTest"
-
-    account = new Account({
-      account: accountName
-    });
-
-  });
-
-  describe('handleError', function () {
-
-
-    it('calls the callback with a specific error string', function () {
-      var spy = sinon.spy()
-      account.handleError('TestError',spy)
-      spy.calledWithExactly('Account.js [' + accountName + ']: Error: TestError').should.be.true
-    });
-
+    cbStub = sinon.stub();
+    hEStub = sinon.stub(reporter,'handleError');
   });
 
 
-  describe('process', function () {
+  describe('process function', function () {
 
-    var hEStub
+    this.timeout(timeout);
 
     before(function () {
-      hEStub = sinon.stub(Account.prototype,'handleError');
+      account.configure(null)
     });
 
-    describe('checking processing is required', function () {
-      it('calls handleError with an error if the EN api fails', function () {
-        enHbpStub.yields('TestError enHbp failed');
+    describe('checking processing is required', function (done) {
 
-        account.process(null,function(err) {
-          hEStub.calledWith('TestError enHbp failed').should.be.true
-          enHbpStub.reset()
-          hEStub.reset()
-        })
-      });
-   
-   
-      it('bails if a message has already been processed')
-
-    })
-
-
-    describe('when processing is required', function () {
-
-      var converterStub
+      var enHbpStub
 
       before(function() {
-        enHbpStub.yields(null,false)
+        enHbpStub = sinon.stub(EmailNotification.prototype,'hasBeenProcessed');
       })
 
-      it('calls handleError if EN getMessage fails', function () {
-        enGmStub.yields('TestError enGm failed');
-        account.process(null,function(err) {
-          hEStub.calledWith('TestError enGm failed').should.be.true
-          enHbpStub.reset()
-          hEStub.reset()
-        })
-      });
+      describe('and the EN api fails', function (done) {
 
-      describe('and the email has been retrieved', function () {
+        var errMsg = 'TestError enHbp failed'
 
-        var converterStub,
-            emailBody
-
-	var data = [
-          { description: "Fly to DXB",   end: {dateTime: '2016-12-18 09:00', timeZone: 'GMT'}, start: {dateTime: '2016-12-18 20:20', timeZone: 'GST'}, summary: 'LHR->DXB' },
-          { description: "Fly to BOM",   end: {dateTime: '2016-12-19 03:40', timeZone: 'GST'}, start: {dateTime: '2016-12-18 22:45', timeZone: 'IST'}, summary: 'DXB->BOM' },
-          { description: "Fly from DXB", end: {dateTime: '2017-01-07 18:15', timeZone: 'IST'}, start: {dateTime: '2017-01-07 17:00', timeZone: 'GST'}, summary: 'BOM->DXB' },
-        ]
-
-
-        before(function() {
-
-
-          var emailBody  = "Start|StartTimeZone|End|EndTimeZone|Title|Desc|"
-
-	  for (var i = 0; i < data.length; i++) {
-	    var d = data[i]
-	    emailBody += "\n" + d.start.dateTime + "|" + d.start.timeZone
-	    emailBody += "|"  + d.end.dateTime   + "|" + d.end.timeZone
-	    emailBody += "|"  + d.summary        + "|" + d.description + "|"
-          }
-
-          enGmStub.yields(null,{ payload: {body: emailBody} });
-
-          converterStub = sinon.stub(converter.prototype,'fromString');
-
-        })
-
-        it('calls handleError if the conversion fails', function () {
-	  var err = 'TestError converterStub failed'
-          converterStub.yields(err);
-          account.process(null,function(err) {
-            hEStub.calledWith(err).should.be.true
-            enHbpStub.reset()
-            hEStub.reset()
-          })
+        before(function (done) {
+          enHbpStub.yields(errMsg);
+          account.process(null, function(err) { cbStub(err); done() })
         });
 
-        describe('and the conversion is successful', function () {
-   
-          it('calls handleError if the calendar creation fails')
-   
-        })
+        it('calls handleError',                 function () { hEStub.calledWithExactly({errMsg: errMsg}).should.be.true })
+        it('returns the error to the callback', function () { cbStub.calledWithExactly(errMsg          ).should.be.true })
 
         after(function() {
-          converterStub.reset();
+            cbStub.reset()
+            enHbpStub.reset()
+            hEStub.reset()
         })
       })
-    });
-  });
+
+      describe('and the email has already been processed', function (done) {
+
+        var enGmStub
+
+        before(function (done) {
+          enHbpStub.yields(null,true);
+          enGmStub = sinon.stub(EmailNotification.prototype,'getMessage');
+          account.process(null, function(err) { cbStub(err); done() })
+        });
+
+        it('bails without retrieving the email',  function () { enGmStub.called.should.be.false })
+        it('calls the callback without an error', function () { cbStub.calledWithExactly(null).should.be.true })
+
+        after(function() {
+            cbStub.reset()
+            enGmStub.restore()
+            enHbpStub.reset()
+        })
+      })
+
+      describe('and retrieving the email', function () {
+
+        var enGmStub
+
+        before(function() {
+          enHbpStub.yields(null,false)
+          enGmStub = sinon.stub(EmailNotification.prototype,'getMessage');
+        })
+
+
+        describe('and the EN getMessage api fails', function (done) {
+
+          var errMsg = 'TestError enGm failed'
+
+          before(function (done) {
+            enGmStub.yields(errMsg);
+            account.process(null, function(err) { cbStub(err); done() })
+          });
+
+          it('calls handleError',                 function () { hEStub.calledWithExactly({errMsg: errMsg}).should.be.true })
+          it('returns the error to the callback', function () { cbStub.calledWithExactly(errMsg          ).should.be.true })
+
+          after(function() {
+              cbStub.reset()
+              enGmStub.reset()
+              hEStub.reset()
+          })
+
+        })
+
+
+        describe('and converting the CSV data to JSON', function () {
+
+          var converterStub,
+              emailBody
+
+          var data = [
+            { description: "Fly to DXB",   end: {dateTime: '2016-12-18 09:00', timeZone: 'GMT'}, start: {dateTime: '2016-12-18 20:20', timeZone: 'GST'}, summary: 'LHR->DXB' },
+            { description: "Fly to BOM",   end: {dateTime: '2016-12-19 03:40', timeZone: 'GST'}, start: {dateTime: '2016-12-18 22:45', timeZone: 'IST'}, summary: 'DXB->BOM' },
+            { description: "Fly from DXB", end: {dateTime: '2017-01-07 18:15', timeZone: 'IST'}, start: {dateTime: '2017-01-07 17:00', timeZone: 'GST'}, summary: 'BOM->DXB' },
+          ]
+
+
+          before(function() {
+
+
+            var emailBody  = "Start|StartTimeZone|End|EndTimeZone|Title|Desc|"
+
+            for (var i = 0; i < data.length; i++) {
+              var d = data[i]
+              emailBody += "\n" + d.start.dateTime + "|" + d.start.timeZone
+              emailBody += "|"  + d.end.dateTime   + "|" + d.end.timeZone
+              emailBody += "|"  + d.summary        + "|" + d.description + "|"
+            }
+
+            enGmStub.yields(null,{ payload: {body: emailBody} });
+
+            converterStub = sinon.stub(converter.prototype,'fromString');
+
+          })
+
+          describe('and the conversion fails', function (done) {
+
+            var errMsg = 'TestError converterStub failed'
+
+            before(function (done) {
+              converterStub.yields(errMsg);
+              account.process(null, function(err) { cbStub(err); done() })
+            });
+
+            it('calls handleError',                 function () { hEStub.calledWithExactly({errMsg: errMsg}).should.be.true })
+            it('returns the error to the callback', function () { cbStub.calledWithExactly(errMsg          ).should.be.true })
+
+            after(function() {
+                cbStub.reset()
+                converterStub.reset()
+                enGmStub.reset()
+                hEStub.reset()
+            })
+          })
+
+          describe('and inserting into the calendar', function () {
+
+            var calendarStub
+
+            before(function() {
+              calendarStub = sinon.stub(CalendarModel.prototype,'addEventToGoogle');
+              converterStub.yields(null,data);
+            })
+
+            describe('and the calendar insert fails', function (done) {
+
+              var errMsg = 'TestError calendar insert failed'
+
+              before(function (done) {
+                calendarStub.yields(errMsg)
+                account.process(null, function(err) { cbStub(err); done() })
+              });
+
+              it('calls handleError',                 function () { hEStub.calledWithExactly({errMsg: errMsg}).should.be.true })
+              it('returns the error to the callback', function () { cbStub.calledWithExactly(errMsg          ).should.be.true })
+
+              after(function() {
+                  calendarStub.reset()
+                  cbStub.reset()
+                  hEStub.reset()
+              })
+
+            })
+
+            describe('and updating labels on the notification email', function (done) {
+
+              var enULStub
+
+              before(function() {
+                calendarStub.yields(null,data);
+                enULStub = sinon.stub(EmailNotification.prototype,'updateLabels');
+              })
+
+              describe('and the label update fails', function (done) {
+   
+                var errMsg = 'TestError label update failed'
+   
+                before(function (done) {
+                  enULStub.yields(errMsg)
+                  account.process(null, function(err) { cbStub(err); done() })
+                });
+   
+                it('calls handleError',                 function () { hEStub.calledWithExactly({errMsg: errMsg}).should.be.true })
+                it('returns the error to the callback', function () { cbStub.calledWithExactly(errMsg          ).should.be.true })
+   
+                after(function() {
+                    cbStub.reset()
+                    enULStub.reset()
+                    hEStub.reset()
+                })
+   
+              })
+
+              describe('and sending out the completion notice', function (done) {
+   
+                var rptStub
+   
+                before(function(done) {
+                  enULStub.yields(null,'This is an email with updated labels');
+                  rptStub = sinon.stub(reporter,'sendCompletionNotice');
+                  account.process(null, function(err) { cbStub(err); done() })
+                })
+
+                it('calls the reporter', function () { rptStub.called.should.be.true })
+
+                after(function() {
+                    cbStub.reset()
+                    hEStub.reset()
+                    rptStub.reset()
+                })
+   
+              })
+
+
+              after(function() {
+                  cbStub.reset()
+                  enULStub.reset()
+                  hEStub.reset()
+              })
+
+            }) // updating labels on the notification email
+
+            after(function() {
+              calendarStub.restore();
+            })
+
+          }) // inserting into the calendar
+
+          after(function() {
+            converterStub.restore();
+          })
+        }) // converting the CSV to JSON
+
+
+        after(function() {
+          enGmStub.restore()
+        })
+
+      }) // retrieving the email
+
+      after(function() {
+        enHbpStub.restore()
+      })
+    }); //checking processing is required
+  }); // process function
 
   after(function () {
 
-    account = null
-    //calendarModelStub.reset()
-    enHbpStub.reset()
+    cbStub.reset();
+    hEStub.reset();
 
   });
 

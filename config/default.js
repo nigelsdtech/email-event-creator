@@ -3,6 +3,7 @@ var defer = require('config/defer').deferConfig;
 
 module.exports = {
   appName: process.env.npm_package_config_appName,
+  appNameBase: process.env.npm_package_config_appName,
 
   auth: {
     credentialsDir:   process.env.HOME+"/.credentials",
@@ -34,6 +35,7 @@ module.exports = {
   },
 
   reporter: {
+    appName             : defer( function (cfg) { return cfg.appName } ),
     appSpecificPassword : process.env.PERSONAL_APP_SPECIFIC_PASSWORD,
     clientSecretFile    : defer( function (cfg) { return cfg.auth.clientSecretFile } ),
     emailsFrom          : "Nigel's Raspberry Pi <"+process.env.PERSONAL_EMAIL+">",

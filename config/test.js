@@ -3,7 +3,7 @@ var defer = require('config/defer').deferConfig;
 
 module.exports = {
 
-  appName: defer (function (cfg) { return cfg.appName+'-test' } ),
+  appName: defer (function (cfg) { return cfg.appNameBase+'-test' } ),
 
   log: {
     level: "WARN"

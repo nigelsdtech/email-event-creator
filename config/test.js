@@ -6,7 +6,19 @@ module.exports = {
   appName: defer (function (cfg) { return cfg.appNameBase+'-test' } ),
 
   log: {
-    level: "WARN"
+    level: "INFO",
+    log4jsConfigs: {
+      appenders: [
+        {
+          type:       "file",
+          filename:   defer(function (cfg) { return cfg.log.logDir.concat("/" , cfg.appName , ".log" ) }),
+          category:   defer(function (cfg) { return cfg.appName }),
+          reloadSecs: 60,
+          maxLogSize: 1024000
+        }
+      ],
+      replaceConsole: false
+    }
   },
   test: {
     commonStubs: {

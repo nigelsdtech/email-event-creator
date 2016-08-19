@@ -37,9 +37,13 @@ describe('Account.js', function () {
   before(function () {
 
     cbStub = sinon.stub();
-    hEStub = sinon.stub(reporter,'handleError');
+    hEStub = sinon.stub(reporter,'handleError', stubFn);
   });
 
+
+  describe('failure report', function () {
+    it('creates a report according to the prescribed format when there are bad events')
+  })
 
   describe('process function', function () {
 
@@ -186,17 +190,27 @@ describe('Account.js', function () {
               converterStub.yields(null,data);
             })
 
-            describe('and the calendar insert fails', function (done) {
+            describe('and the calendar insert fails partially', function (done) {
+              it('calls handleError for the partial report')
+              it('does not return the error to the callback')
+            })
+
+            describe('and the calendar insert fails completely', function (done) {
 
               var errMsg = 'TestError calendar insert failed'
+              var retErr
 
               before(function (done) {
                 calendarStub.yields(errMsg)
-                account.process(null, function(err) { cbStub(err); done() })
+                account.process(null, function(err) {
+                  cbStub(err);
+                  retErr = account.createFailureReport()
+                  done()
+                })
               });
 
-              it('calls handleError',                 function () { hEStub.calledWithExactly({errMsg: errMsg}).should.be.true })
-              it('returns the error to the callback', function () { cbStub.calledWithExactly(errMsg          ).should.be.true })
+              it('calls handleError',                 function () { hEStub.calledWithExactly({errMsg: retErr}).should.be.true })
+              it('returns the error to the callback', function () { cbStub.calledWithExactly(retErr          ).should.be.true })
 
               after(function() {
                   calendarStub.reset()
@@ -211,34 +225,36 @@ describe('Account.js', function () {
               var enULStub
 
               before(function() {
-                calendarStub.yields(null,data);
+
+                var goodEvent = { description: "This is a successful event",   end: {dateTime: '2016-12-18 09:00', timeZone: 'GMT'}, start: {dateTime: '2016-12-18 20:20', timeZone: 'GST'}, summary: 'LHR->DXB' }
+                calendarStub.yields(null,goodEvent);
                 enULStub = sinon.stub(EmailNotification.prototype,'updateLabels');
               })
 
               describe('and the label update fails', function (done) {
-   
+
                 var errMsg = 'TestError label update failed'
-   
+
                 before(function (done) {
                   enULStub.yields(errMsg)
                   account.process(null, function(err) { cbStub(err); done() })
                 });
-   
+
                 it('calls handleError',                 function () { hEStub.calledWithExactly({errMsg: errMsg}).should.be.true })
                 it('returns the error to the callback', function () { cbStub.calledWithExactly(errMsg          ).should.be.true })
-   
+
                 after(function() {
                     cbStub.reset()
                     enULStub.reset()
                     hEStub.reset()
                 })
-   
+
               })
 
               describe('and sending out the completion notice', function (done) {
-   
+
                 var rptStub
-   
+
                 before(function(done) {
                   enULStub.yields(null,'This is an email with updated labels');
                   rptStub = sinon.stub(reporter,'sendCompletionNotice');
@@ -252,7 +268,7 @@ describe('Account.js', function () {
                     hEStub.reset()
                     rptStub.reset()
                 })
-   
+
               })
 
 

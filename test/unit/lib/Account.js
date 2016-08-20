@@ -191,8 +191,45 @@ describe('Account.js', function () {
             })
 
             describe('and the calendar insert fails partially', function (done) {
-              it('calls handleError for the partial report')
-              it('does not return the error to the callback')
+
+              var errMsg = 'TestError calendar insert partial failed'
+              var retErr
+
+              var errCounter = 0
+
+              before(function (done) {
+                calendarStub.restore()
+
+                calendarStub = sinon.stub(CalendarModel.prototype,'addEventToGoogle', function (ev, cb) {
+                  // Simple test is to error out every odd entry
+                  if (errCounter % 2) {
+                    cb(errMsg)
+                  } else {
+                    cb(null,ev)
+                  }
+
+                  errCounter++
+                })
+
+                account.process(null, function(err) {
+                  cbStub(err);
+                  retErr = account.createFailureReport()
+                  done()
+                })
+              });
+
+
+              it('calls handleError for the partial report',  function() { hEStub.calledWithExactly({errMsg: retErr}).should.be.true })
+              it('does not return the error to the callback', function() { cbStub.calledWithExactly(retErr          ).should.be.false })
+
+              after(function() {
+                  calendarStub.restore()
+                  calendarStub = sinon.stub(CalendarModel.prototype,'addEventToGoogle');
+                  cbStub.reset()
+                  hEStub.reset()
+              })
+
+
             })
 
             describe('and the calendar insert fails completely', function (done) {

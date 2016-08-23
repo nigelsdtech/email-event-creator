@@ -39,7 +39,7 @@ module.exports = {
       }
     },
     notificationTo : defer( function (cfg) { return process.env.PERSONAL_EMAIL.replace("@","+"+cfg.appName+"@") } ),
-    personalGmail: {
+    testerGmail: {
       appSpecificPassword : process.env.PERSONAL_APP_SPECIFIC_PASSWORD,
       clientSecretFile    : defer( function (cfg) { return cfg.auth.clientSecretFile } ),
       emailAddress        : process.env.PERSONAL_EMAIL,

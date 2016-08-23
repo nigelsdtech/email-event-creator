@@ -13,6 +13,19 @@ module.exports = {
     scopes:           (process.env.npm_package_config_googleAuthScopes)? process.env.npm_package_config_googleAuthScopes.split(",") : null
   },
 
+  emailNotification: {
+    gmail: {
+      clientSecretFile:     defer( function (cfg) { return cfg.auth.credentialsDir } ),
+      googleScopes:         defer( function (cfg) { return cfg.auth.scopes } ),
+      name:                 defer( function (cfg) { return cfg.account } ),
+      tokenDir:             defer( function (cfg) { return cfg.auth.tokenFileDir } ),
+      tokenFile:            defer( function (cfg) { return cfg.auth.tokenDir } )
+    },
+    gmailSearchCriteria: defer( function (cfg) { return 'is:unread is:inbox subject:"' + cfg.emailNotification.subject + '"' } ),
+    processedLabelName: defer( function (cfg) { return cfg.appName+"-processed" } ),
+    subject: 'OVERRIDE ME'
+  },
+
   log: {
     appName: defer(function (cfg) { return cfg.appName } ),
     level:   "INFO",

@@ -12,9 +12,14 @@ module.exports = {
     tokenFile: defer( function (cfg) { return "access_token_"+cfg.appName+"-"+cfg.account+".json" } )
   },
 
-  emailAddress: 'OverrideMePerInstance Me',
+  emailAddress: 'OverrideMePerInstance',
 
-  gmailSearchCriteria: 'is:unread is:inbox subject:"CALENDAR INSERT"',
+  emailNotification: {
+    gmail: {
+      googleScopes: defer( function (cfg) { return cfg.auth.scopesGmail } )
+    },
+    subject: "CALENDAR INSERT"
+  }
 
-  processedLabelName: defer( function (cfg) { return cfg.appName+"-processed" } )
+
 }

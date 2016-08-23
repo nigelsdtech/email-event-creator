@@ -11,11 +11,4 @@ module.exports = {
 
   emailAddress: process.env.PERSONAL_EMAIL_ADDRESS,
 
-  test: {
-    timeout: {
-      functional: 20000,
-      unit: 5000
-    }
-  }
-
 }

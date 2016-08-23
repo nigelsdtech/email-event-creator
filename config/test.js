@@ -14,7 +14,7 @@ module.exports = {
           filename:   defer(function (cfg) { return cfg.log.logDir.concat("/" , cfg.appName , ".log" ) }),
           category:   defer(function (cfg) { return cfg.appName }),
           reloadSecs: 60,
-          maxLogSize: 1024000
+          maxLogSize: 612000
         }
       ],
       replaceConsole: false
@@ -38,19 +38,20 @@ module.exports = {
         getLogger: function() {}
       }
     },
+    notificationTo : defer( function (cfg) { return process.env.PERSONAL_EMAIL.replace("@","+"+cfg.appName+"@") } ),
     personalGmail: {
       appSpecificPassword : process.env.PERSONAL_APP_SPECIFIC_PASSWORD,
       clientSecretFile    : defer( function (cfg) { return cfg.auth.clientSecretFile } ),
+      emailAddress        : process.env.PERSONAL_EMAIL,
       emailsFrom          : "Nigel's Raspberry Pi Tester <"+process.env.PERSONAL_EMAIL+">",
       googleScopes        : ["https://mail.google.com"],
       name                : "rpi-tester",
-      notificationTo      : process.env.PERSONAL_EMAIL,
       tokenDir            : defer( function (cfg) { return cfg.auth.tokenFileDir } ),
       tokenFile           : "access_token_rpi-tester.json",
       user                : process.env.PERSONAL_GMAIL_USERNAME
     },
     timeout: {
-      unit: (1000*2),
+      unit: (1000*5),
       functional: (1000*60)
     }
   }

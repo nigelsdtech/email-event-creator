@@ -8,7 +8,7 @@ var
     EmailNotification = require('email-notification'),
     reporter          = require('reporter'),
     sinon             = require('sinon'),
-    account           = require('../../../lib/Account.js');
+    account           = require('../../../lib/EmailEventCreator.js');
 
 /*
  * Set up chai
@@ -27,7 +27,7 @@ var stubFn = function () {}
  * The actual tests
  */
 
-describe('Account.js', function () {
+describe('EmailEventCreator.js', function () {
 
   var
       cbStub,
@@ -49,8 +49,8 @@ describe('Account.js', function () {
 
     this.timeout(timeout);
 
-    before(function () {
-      account.configure(null)
+    before(function (done) {
+      account.configure(null,done)
     });
 
     describe('checking processing is required', function (done) {

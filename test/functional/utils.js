@@ -33,9 +33,10 @@ var calendar = new CalendarModel({
  * Check events have been inserted in to the calendar
  *
  * @param {object} params
- * @param {object} cb - Callback to be called at the end. Returns cb(err)
+ * @param {object} params.event - An event object to be verified. Verification is finding an event with the same desc, start and end times
+ * @param {object} cb - Callback to be called at the end. Returns cb(err,calendarEvents)
  */ 
-function checkCalenderEventsCreated (params,cb) {
+function checkCalenderEventCreated (params,cb) {
 
 }
 
@@ -52,7 +53,7 @@ function cleanupEmails (params,cb) {
   // Get rid of the message sent by the sender
   Q.allSettled([
     Q.nfcall(testerGmail.listMessages, { freetextSearch: enSearchCriteria }),
-    Q.nfcall(gmail.listMessages,         { freetextSearch: enSearchCriteria })
+    Q.nfcall(gmail.listMessages,       { freetextSearch: enSearchCriteria })
   ])
   .spread(function(senderMessages,recipientMessages) {
 

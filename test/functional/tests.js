@@ -16,8 +16,11 @@ var
  */
 chai.should();
 
-
+/*
+ * Configs
+ */
 var timeout = cfg.test.timeout.functional;
+var dataFileDir = '../../data'
 
 
 /*
@@ -25,6 +28,8 @@ var timeout = cfg.test.timeout.functional;
  */
 
 describe('Complete success of the inserts', function () {
+
+  var dataFile = '
 
   before(function (done) {
     Q.nfcall(utils.sendNotificationEmail, {body: 'OVERRIDE ME'})

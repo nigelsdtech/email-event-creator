@@ -6,6 +6,7 @@ var
     chai              = require('chai'),
     converter         = require('csvtojson').Converter,
     EmailNotification = require('email-notification'),
+    JSONFile          = require('json-tu-file'),
     reporter          = require('reporter'),
     sinon             = require('sinon'),
     account           = require('../../../lib/EmailEventCreator.js');
@@ -136,11 +137,9 @@ describe('EmailEventCreator.js', function () {
           var converterStub,
               emailBody
 
-          var data = [
-            { description: "Fly to DXB",   end: {dateTime: '2016-12-18 09:00', timeZone: 'GMT'}, start: {dateTime: '2016-12-18 20:20', timeZone: 'GST'}, summary: 'LHR->DXB' },
-            { description: "Fly to BOM",   end: {dateTime: '2016-12-19 03:40', timeZone: 'GST'}, start: {dateTime: '2016-12-18 22:45', timeZone: 'IST'}, summary: 'DXB->BOM' },
-            { description: "Fly from DXB", end: {dateTime: '2017-01-07 18:15', timeZone: 'IST'}, start: {dateTime: '2017-01-07 17:00', timeZone: 'GST'}, summary: 'BOM->DXB' },
-          ]
+          var data = JSONFile.readFileSync('./test/data/completeSuccess.json');
+          console.error('SteveFlag 1 - ')
+          console.error(data)
 
 
           before(function() {

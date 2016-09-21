@@ -27,5 +27,10 @@
   },
   "config": {
     "appName": "email-event-creator"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "json-tu-file": "^1.4.2",
+    "mocha": "^3.0.2"
   }
 }

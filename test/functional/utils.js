@@ -34,7 +34,7 @@ var calendar = new CalendarModel({
  *
  * @param {object} params
  * @param {object} cb - Callback to be called at the end. Returns cb(err)
- */ 
+ */
 function checkCalenderEventsCreated (params,cb) {
 
 }
@@ -44,7 +44,7 @@ function checkCalenderEventsCreated (params,cb) {
  *
  * @param {object} params (currently unused)
  * @param {object} cb - Callback to be called at the end. Returns cb(err)
- */ 
+ */
 function cleanupEmails (params,cb) {
 
   var enSearchCriteria = 'to:' + cfg.test.notificationTo + ' subject: ' + cfg.emailNotification.subject
@@ -61,15 +61,15 @@ function cleanupEmails (params,cb) {
     // Add the sender's messages to the list of trash jobs
     if (senderMessages) {
       senderMessages.foreach(function (el) {
-        trashJobs.push(Q.nfcall(testerGmail.trashMessages,{messageIds: [el.id]})
-      }
+        trashJobs.push(Q.nfcall(testerGmail.trashMessages,{messageIds: [el.id]}))
+      })
     }
 
     // Add the recipients messages to the list of trash jobs
     if (recipientMessages) {
       recipientMessages.foreach(function (el) {
-        trashJobs.push(Q.nfcall(gmail.trashMessages,{messageIds: [el.id]})
-      }
+        trashJobs.push(Q.nfcall(gmail.trashMessages,{messageIds: [el.id]}))
+      })
     }
 
     if (trashJobs.length > 0) {
@@ -91,7 +91,7 @@ function cleanupEmails (params,cb) {
  * @param {object} params
  * @param {string} params.body - email body
  * @param {object} cb - Callback to be called at the end. Returns cb(err)
- */ 
+ */
 function sendNotificationEmail (params, cb) {
 
   personalGmail.sendMessage({
@@ -109,7 +109,7 @@ function sendNotificationEmail (params, cb) {
  *
  * @param {object} params (currently unused)
  * @param {object} cb - Callback to be called at the end. Returns cb(err)
- */ 
+ */
 function runMainScript (params,cb) {
 
   Q.nfcall(account)

@@ -12,6 +12,8 @@ var
     reporter          = require('reporter'),
     utils             = require('./utils.js');
 
+require('q-foreach2')(Q);
+
 /*
  * Set up chai
  */
@@ -22,35 +24,46 @@ chai.should();
  */
 var timeout = cfg.test.timeout.functional;
 var dataFileDir = '../data/'
+var processedLabelId
 
 
 /*
  * The actual tests
  */
 
-describe('Complete success of the inserts', function () {
+before(function (done) {
+  Q.nfcall(gmail.getLabelId,{
+    labelName: cfg.processedLabelName,
+    createIfNotExists: true
+  })
+  .then(function (labelId) {processedLabelId=labelId})
+
+})
+
+describe.only('Complete success of the inserts', function () {
 
   var dataFile = dataFileDir + 'completeSuccess.json'
   var testEvents
 
   before(function (done) {
     Q.nfcall(readJSON, dataFile)
-    .then(function(jdata) {testEvents = jdata; return Q.nfcall(utils.createEmailBody,{events: testEvents}) })
-    .then(function(body)  { return Q.nfcall(utils.sendNotificationEmail,{body: body}) })
+    .then(function(jdata) {
+      testEvents = jdata;
+      var emailBody = createEmailBody({events: testEvents})
+      return Q.nfcall(utils.sendNotificationEmail,{body: emailBody})
+    })
     .then(function(empty) { return Q.nfcall(utils.runMainScript,null) })
-    .then(function(empty) { done() })
-    .fail(function(e)     { throw new Error(e) })
+    .fin(done)
     .done()
   })
 
-  it('Inserts events into the calendar')
-  it('Marks the notification email as read and processed')
-  it('Sends out a report email')
+  it('Inserts events into the calendar', function(done) { checkEventsCreated({events: testEvents}, done) })
+  it('Marks the trigger email as read and processed', function(done) {checkTriggerUpdated({processedLabelId: processedLabelId}, done)})
+  it('Sends out a report email with the correct body')
 
   after(function (done) {
     Q.nfcall(utils.cleanupEmails,null)
-    .then(function(empty) { done() })
-    .fail(function(e) { throw new Error(e) })
+    .fin(done)
     .done()
   })
 });
@@ -114,3 +127,7 @@ describe('No notification received', function () {
   it('Does not send a report')
 
 });
+
+after(function (done) {
+  Q.nfcall(gmail.deleteLabel,{labelId: processedLabelId}).fin(done)
+})

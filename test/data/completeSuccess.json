@@ -1,7 +1,7 @@
 [
-  { "summary": "GOOD: LHR->DXB", "start": {"dateTime": "2016-12-18 09:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2016-12-18 20:20", "timeZone": "Asia/Dubai"},    "description": "Event creation should succeed" },
-  { "summary": "GOOD: AUH->GOI", "start": {"dateTime": "2016-12-18 22:45", "timeZone": "Asia/Dubai"},    "end": {"dateTime": "2016-12-19 03:45", "timeZone": "Asia/Kolkata"},  "description": "Event creation should succeed" },
-  { "summary": "GOOD: GOI->BOM", "start": {"dateTime": "2017-01-07 17:00", "timeZone": "Asia/Kolkata"},  "end": {"dateTime": "2017-01-07 18:15", "timeZone": "Asia/Kolkata"},  "description": "Event creation should succeed" },
-  { "summary": "GOOD: BOM->AUH", "start": {"dateTime": "2017-01-07 21:25", "timeZone": "Asia/Kolkata"},  "end": {"dateTime": "2017-01-07 23:25", "timeZone": "Asia/Kolkata"},  "description": "Event creation should succeed" },
-  { "summary": "GOOD: AUH->LHR", "start": {"dateTime": "2017-01-08 02:30", "timeZone": "Asia/Dubai"},    "end": {"dateTime": "2017-01-08 06:40", "timeZone": "Europe/London"}, "description": "Event creation should succeed" }
+  { "summary": "LHR->DXB", "start": {"dateTime": "2016-12-18 09:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2016-12-18 20:20", "timeZone": "Asia/Dubai"},    "shouldBeCreated": true },
+  { "summary": "AUH->GOI", "start": {"dateTime": "2016-12-18 22:45", "timeZone": "Asia/Dubai"},    "end": {"dateTime": "2016-12-19 03:45", "timeZone": "Asia/Kolkata"},  "shouldBeCreated": true },
+  { "summary": "GOI->BOM", "start": {"dateTime": "2017-01-07 17:00", "timeZone": "Asia/Kolkata"},  "end": {"dateTime": "2017-01-07 18:15", "timeZone": "Asia/Kolkata"},  "shouldBeCreated": true },
+  { "summary": "BOM->AUH", "start": {"dateTime": "2017-01-07 21:25", "timeZone": "Asia/Kolkata"},  "end": {"dateTime": "2017-01-07 23:25", "timeZone": "Asia/Kolkata"},  "shouldBeCreated": true },
+  { "summary": "AUH->LHR", "start": {"dateTime": "2017-01-08 02:30", "timeZone": "Asia/Dubai"},    "end": {"dateTime": "2017-01-08 06:40", "timeZone": "Europe/London"}, "shouldBeCreated": true }
 ]

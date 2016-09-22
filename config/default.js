@@ -55,6 +55,8 @@ module.exports = {
     googleScopes        : ["https://www.googleapis.com/auth/gmail.send"],
     name                : "Reporter (Personal)",
     notificationTo      : process.env.PERSONAL_EMAIL,
+    subjectError        : defer( function (cfg) { return cfg.appName+' ERROR' } ),
+    subjectSuccess      : defer( function (cfg) { return cfg.appName+' complete' } ),
     tokenDir            : defer( function (cfg) { return cfg.auth.tokenFileDir } ),
     tokenFile           : "access_token_reporter.json",
     user                : process.env.PERSONAL_GMAIL_USERNAME

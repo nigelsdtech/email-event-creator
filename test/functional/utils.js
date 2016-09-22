@@ -2,11 +2,13 @@
 
 var
     CalendarModel     = require('calendar-model'),
+    chai              = require('chai'),
     cfg               = require('config'),
     GmailModel        = require('gmail-model'),
     Q                 = require('q')
 
 require('q-foreach2')(Q);
+chai.should();
 
 
 /*
@@ -31,16 +33,16 @@ var calendar = new CalendarModel({
 
 
 /**
- * Check events have been inserted in to the calendar
+ * Check events have (or haven't) been inserted in to the calendar
  *
  * @param {object} params
  * @param {object[]} params.events - Event objects to be verified. Verification is finding an event with the same desc, start and end times
+ * @param {boolean} params.events[i].shouldBeCreated - Indicates whether or not this event is expected to exist
  * @param {object} cb - Callback to be called at the end. Returns cb(err,isCreated)
  */ 
-function checkCalenderEventsCreated (params,cb) {
+function checkEventsCreated (params,cb) {
 
-  Q.foreach(params.events, function (ev idx) {
-    var defer = Q.defer();
+  Q.foreach(params.events, function (ev, idx) {
 
     return Q.nfcall(calendar.listEvents,{
       retFields: ['items(end,start,summary)'],
@@ -48,29 +50,73 @@ function checkCalenderEventsCreated (params,cb) {
       timeMax: ev.end.dateTime
       timeMin: ev.start.dateTime
     })
-    .then(function (evs) { if (evs.length == 1) { return Q.resolve(true); } else { return Q.resolve(false); } })
-    .done()
+    .then(function (evs) {
 
-  })
-  .then(function(results) {
+      var isCreated = false
 
-    var ret = true
+      if (evs && evs.length > 0) {
 
-    // If all were created, we return true
-    for (var i = 0; i < results.length; i++) {
-      if (result.result == false) {
-        ret = false
-        break
+        for (var i = 0; i < evs.length; i++) {
+          var el = evs[i]
+          if (el.summary = ev.summary && el.end.dateTime = ev.end.dateTime && el.end.startTime = ev.end.startTime) {
+            isCreated = true
+            break
+          }
+        }
       }
-    }
 
-    cb(null,ret)
-
+      isCreated.should.equal(ev.shouldBeCreated)
+    })
   })
-  .fail(function(err) { cb(err) })
+  .fail(function(err) { throw err })
+  .fin(cb)
   .done()
 
 }
+
+/**
+ * Check the report email has been received and contains the correct content
+ *
+ * @param {object} params
+ * @param {string} params
+ * @param {object} cb - Callback to be called at the end. Returns cb(err,isCreated)
+ */
+function checkReport (params,cb) {
+
+  Q.nfcall(personalGmail.listMessages,{
+    freetextSearch: 'is:unread to:me newer_than:1d subject:"' + cfg.reporter.subjectSuccess + '"',
+    maxResults: 1
+  })
+  .then(function (messages) { return Q.nfcall(workGmail.getMessage,{messageId: messages[0].id}) })
+  .then(function (message) {
+    message.labelIds.should.not.include('UNREAD');
+    cb();
+  })
+
+}
+
+/**
+ * Check that the email notification has been marked read and processed
+ *
+ * @param {object} params
+ * @param {string} params.processedLabelId
+ * @param {object} cb - Callback to be called at the end. Returns cb(err,isCreated)
+ */
+function checkTriggerUpdated (params,cb) {
+
+  Q.nfcall(personalGmail.listMessages,{
+    freetextSearch: 'is:unread to:me newer_than:1d subject:"' + cfg.notificationEmail.subject + '"',
+    maxResults: 1
+  })
+  .then(function (messages) { return Q.nfcall(workGmail.getMessage,{messageId: messages[0].id}) })
+  .then(function (message) {
+    message.labelIds.should.include(params.processedLabelId);
+    message.labelIds.should.not.include('UNREAD');
+    cb();
+  })
+
+}
+
 
 /**
  * Clean up the sent/received notification emails
@@ -123,9 +169,9 @@ function cleanupEmails (params,cb) {
  *
  * @param {object} params
  * @param {object[]} params.events - Event objects.
- * @param {object} cb - Callback to be called at the end. Returns cb(err,emailBody)
+ * @returns {string} emailBody
  */ 
-function createEmailBody (params,cb) {
+function createEmailBody (params) {
 
   var data = params.events
 
@@ -138,7 +184,7 @@ function createEmailBody (params,cb) {
     emailBody += "|"  + d.summary        + "|" + d.description + "|"
   }
 
-  cb(null,emailBody)
+  return emailBody
 }
 
 /**

@@ -7,6 +7,7 @@ var
     chai              = require('chai'),
     converter         = require('csvtojson').Converter,
     EmailNotification = require('email-notification'),
+    readJSON          = require('read-json'),
     Q                 = require('q'),
     reporter          = require('reporter'),
     utils             = require('./utils.js');
@@ -20,7 +21,7 @@ chai.should();
  * Configs
  */
 var timeout = cfg.test.timeout.functional;
-var dataFileDir = '../../data'
+var dataFileDir = '../data/'
 
 
 /*
@@ -29,11 +30,14 @@ var dataFileDir = '../../data'
 
 describe('Complete success of the inserts', function () {
 
-  var dataFile = '
+  var dataFile = dataFileDir + 'completeSuccess.json'
+  var testEvents
 
   before(function (done) {
-    Q.nfcall(utils.sendNotificationEmail, {body: 'OVERRIDE ME'})
-    .then(function(empty) { return Q.nfcall(utils.runMainScript,null) } )
+    Q.nfcall(readJSON, dataFile)
+    .then(function(jdata) {testEvents = jdata; return Q.nfcall(utils.createEmailBody,{events: testEvents}) })
+    .then(function(body)  { return Q.nfcall(utils.sendNotificationEmail,{body: body}) })
+    .then(function(empty) { return Q.nfcall(utils.runMainScript,null) })
     .then(function(empty) { done() })
     .fail(function(e)     { throw new Error(e) })
     .done()

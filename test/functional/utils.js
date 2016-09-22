@@ -6,6 +6,7 @@ var
     GmailModel        = require('gmail-model'),
     Q                 = require('q')
 
+require('q-foreach2')(Q);
 
 
 /*
@@ -33,10 +34,41 @@ var calendar = new CalendarModel({
  * Check events have been inserted in to the calendar
  *
  * @param {object} params
- * @param {object} params.event - An event object to be verified. Verification is finding an event with the same desc, start and end times
+ * @param {object[]} params.events - Event objects to be verified. Verification is finding an event with the same desc, start and end times
  * @param {object} cb - Callback to be called at the end. Returns cb(err,isCreated)
  */ 
-function checkCalenderEventCreated (params,cb) {
+function checkCalenderEventsCreated (params,cb) {
+
+  Q.foreach(params.events, function (ev idx) {
+    var defer = Q.defer();
+
+    return Q.nfcall(calendar.listEvents,{
+      retFields: ['items(end,start,summary)'],
+      textSearch: ev.summary,
+      timeMax: ev.end.dateTime
+      timeMin: ev.start.dateTime
+    })
+    .then(function (evs) { if (evs.length == 1) { return Q.resolve(true); } else { return Q.resolve(false); } })
+    .done()
+
+  })
+  .then(function(results) {
+
+    var ret = true
+
+    // If all were created, we return true
+    for (var i = 0; i < results.length; i++) {
+      if (result.result == false) {
+        ret = false
+        break
+      }
+    }
+
+    cb(null,ret)
+
+  })
+  .fail(function(err) { cb(err) })
+  .done()
 
 }
 
@@ -84,6 +116,29 @@ function cleanupEmails (params,cb) {
   .done()
 
 
+}
+
+/**
+ * Create email body from json events
+ *
+ * @param {object} params
+ * @param {object[]} params.events - Event objects.
+ * @param {object} cb - Callback to be called at the end. Returns cb(err,emailBody)
+ */ 
+function createEmailBody (params,cb) {
+
+  var data = params.events
+
+  var emailBody  = "Start|StartTimeZone|End|EndTimeZone|Title|Desc|"
+
+  for (var i = 0; i < data.length; i++) {
+    var d = data[i]
+    emailBody += "\n" + d.start.dateTime + "|" + d.start.timeZone
+    emailBody += "|"  + d.end.dateTime   + "|" + d.end.timeZone
+    emailBody += "|"  + d.summary        + "|" + d.description + "|"
+  }
+
+  cb(null,emailBody)
 }
 
 /**

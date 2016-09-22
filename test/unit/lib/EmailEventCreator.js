@@ -6,7 +6,7 @@ var
     chai              = require('chai'),
     converter         = require('csvtojson').Converter,
     EmailNotification = require('email-notification'),
-    JSONFile          = require('json-tu-file'),
+    readJSON          = require('read-json-file'),
     reporter          = require('reporter'),
     sinon             = require('sinon'),
     account           = require('../../../lib/EmailEventCreator.js');
@@ -137,26 +137,31 @@ describe('EmailEventCreator.js', function () {
           var converterStub,
               emailBody
 
-          var data = JSONFile.readFileSync('./test/data/completeSuccess.json');
-          console.error('SteveFlag 1 - ')
-          console.error(data)
+          var data
 
+          before(function(done) {
 
-          before(function() {
+            readJSON('./test/data/completeSuccess.json', function (err, jdata) {
 
+              if (err) throw err
 
-            var emailBody  = "Start|StartTimeZone|End|EndTimeZone|Title|Desc|"
+              data = jdata
 
-            for (var i = 0; i < data.length; i++) {
-              var d = data[i]
-              emailBody += "\n" + d.start.dateTime + "|" + d.start.timeZone
-              emailBody += "|"  + d.end.dateTime   + "|" + d.end.timeZone
-              emailBody += "|"  + d.summary        + "|" + d.description + "|"
-            }
+              var emailBody  = "Start|StartTimeZone|End|EndTimeZone|Title|Desc|"
 
-            enGmStub.yields(null,{ payload: {body: emailBody} });
+              for (var i = 0; i < jdata.length; i++) {
+                var d = jdata[i]
+                emailBody += "\n" + d.start.dateTime + "|" + d.start.timeZone
+                emailBody += "|"  + d.end.dateTime   + "|" + d.end.timeZone
+                emailBody += "|"  + d.summary        + "|" + d.description + "|"
+              }
 
-            converterStub = sinon.stub(converter.prototype,'fromString');
+              enGmStub.yields(null,{ payload: {body: emailBody} });
+
+              converterStub = sinon.stub(converter.prototype,'fromString');
+
+              done()
+            })
 
           })
 

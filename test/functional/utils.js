@@ -31,6 +31,8 @@ var calendar = new CalendarModel({
     tokenFile:        cfg.auth.tokenFile
 })
 
+// Mock failure reason for event creation failures
+var evCreationFailureReason = "Test Fail"
 
 /**
  * Check events have (or haven't) been inserted in to the calendar
@@ -78,10 +80,33 @@ function checkEventsCreated (params,cb) {
  * Check the report email has been received and contains the correct content
  *
  * @param {object} params
- * @param {string} params
+ * @param {object[]} params.events: JSON set of events expected in the report body
  * @param {object} cb - Callback to be called at the end. Returns cb(err,isCreated)
  */
 function checkReport (params,cb) {
+
+  var reportSubject = cfg.reporter.subjectSuccess
+
+  var reportContents = "APP_NAME complete. NUM_SUCCESS events created successfully. NUM_FAILED failed."
+  reportContents    += "<p>"
+
+  // Prepare the event reports
+  var succeededContents = ""
+  var failedContents    = ""
+  var numSucceeded      = 0
+  var numFailed         = 0
+
+  for (var i = 0; i < params.events.length; i++ ) {
+    var e = params.events[i]
+    if (e.shouldBeCreated == false) {
+      failedContents += "Event: " + calendar.getEventString(e, {showTimeZones:true}) + "<br />"
+      failedContents += "Reason: " + evCreationFailureReason + "<br /><br />"
+      numFailed++
+    } else {
+      succeededContents += "Event: " + calendar.getEventString(e, {showTimeZones:true}) + "<br />"
+      numSucceeded++
+    }
+  }
 
   Q.nfcall(personalGmail.listMessages,{
     freetextSearch: 'is:unread to:me newer_than:1d subject:"' + cfg.reporter.subjectSuccess + '"',
@@ -89,7 +114,9 @@ function checkReport (params,cb) {
   })
   .then(function (messages) { return Q.nfcall(workGmail.getMessage,{messageId: messages[0].id}) })
   .then(function (message) {
-    message.labelIds.should.not.include('UNREAD');
+
+    var msgBody = message.body.data
+    msgBody.should.equal(reportContents);
     cb();
   })
 

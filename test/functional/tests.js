@@ -59,7 +59,7 @@ describe.only('Complete success of the inserts', function () {
 
   it('Inserts events into the calendar', function(done) { checkEventsCreated({events: testEvents}, done) })
   it('Marks the trigger email as read and processed', function(done) {checkTriggerUpdated({processedLabelId: processedLabelId}, done)})
-  it('Sends out a report email with the correct body')
+  it('Sends out a report email with the correct body', function(done) {checkReport({ events: testEvents }, done)})
 
   after(function (done) {
     Q.nfcall(utils.cleanupEmails,null)
